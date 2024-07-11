@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  role       UserRole @default(COMMON)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum UserRole {
+  COMMON
+  ADMIN
+  SUPER
+}
+
+enum MediaTypes {
+  VIDEO
+  IMAGE
+  DOCUMENT
+}
+
+model Course {
+  id String @id @default(uuid())
+  title String
+  subjects   Subject[]
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("courses")
+}
+
+model Media {
+  id String @id @default(uuid())
+  title String @default("Midia")
+  url String
+  type MediaTypes @default(VIDEO)
+  subject_id String
+  subject Subject @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+
+  @@map("medias")
+}
+
+model Subject {
+  id String @id @default(uuid())
+  title String
+  body String   @db.VarChar(10000) 
+  medias Media[]
+  course_id  String
+  comments Comment[]
+  course     Course   @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("subjects")
+}
+
+model Comment {
+ id         String    @id @default(uuid())
+ body       String   @db.VarChar(10000) 
+ subject_id String
+ subject    Subject   @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+
+ @@map("comments")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
